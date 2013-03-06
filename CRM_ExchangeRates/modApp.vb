@@ -108,7 +108,7 @@ Module modApp
         er.Update_ExchangeRatesLog(fd)
         'Run ExchangeRates Update
         '-------------------------------------------------------------------------------------------
-        'strResult = er.GetCurrencies()
+        strResult = er.GetCurrencies()
         strResult = er.GetLatestCurrencyExchangeRates()
         'strResult = er.TestJson()
 
@@ -117,7 +117,7 @@ Module modApp
         With fd
             .ElapsedTime = er.GetElapsedTime(dtmStartTime)
             .EndTime = Date.Now
-            .ReturnMsg = "CRM Exchange Rates Update Complete..."
+            .ReturnMsg = "CRM Exchange Rates Update Complete..." & vbCrLf & vbCrLf & strResult
             .RoutineName = "CRM_ExchangeRates"
             .RoutineType = ""
             .StartTime = dtmStartTime
