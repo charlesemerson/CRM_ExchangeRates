@@ -25,7 +25,7 @@ Module modApp
 #Region " Emailer "
 
     Public Sub SendCompletionEmail(ByVal fd As clsFunctionDetails)
-        strSubject = "CRM Exchange Rates - Log"
+        strSubject = "Exchange Rates - Log"
         strMsg = "                    " & "Exchange Rates Finished.<br />"
         strMsg &= "                    " & "Start Time: " & fd.StartTime.ToString & "<br />"
         strMsg &= "                    " & "End Time: " & Date.Now.ToString & "<br />"
@@ -48,7 +48,6 @@ Module modApp
             .SMTPPassword = strSMTPPassword
             .EmailFrom = strEmailFrom
             .EmailTo = strEmailTo
-            '.EmailCC = strEmailCC
             .Subject = strSubject
             .Body = strBody
         End With
@@ -58,7 +57,7 @@ Module modApp
 
     Public Sub SendErrorEmail(ByVal funcDetails As clsFunctionDetails)
         Dim strReturnMsg As String = ""
-        Dim strSubject As String = "CRM Exchange Rates Error"
+        Dim strSubject As String = "Exchange Rates Error"
         strMsg = "                    " & funcDetails.RoutineName & "<br />"
         strMsg &= "                    " & funcDetails.ReturnMsg & "<br />"
         strMsg &= "                    " & "Date: " & funcDetails.StartTime.ToString & "<br />"
@@ -81,7 +80,6 @@ Module modApp
             .SMTPPassword = strSMTPPassword
             .EmailFrom = strEmailFrom
             .EmailTo = strEmailTo
-            '.EmailCC = strEmailCC
             .Subject = strSubject
             .Body = strBody
         End With
@@ -91,34 +89,39 @@ Module modApp
 
 #End Region
 
-    Public Sub RunCRM_ExchangeRates(ByVal strStartDate As String)
+    Public Sub Run_ExchangeRates(ByVal strStartDate As String)
         Dim er As New clsExchangeRates
         Dim strResult As String = ""
         er.ConnString = ConfigurationManager.ConnectionStrings("ConnString").ToString
         Dim dtmStartTime As DateTime = Date.Now
         '==============================================================================================
         Console.WriteLine("Updating Currency Exchange Rates via API: " & dtmStartTime.ToString)
+        '-------------------------------------------------------------------------------------------
         'Start Exchange Rates Update
+        '-------------------------------------------------------------------------------------------
         With fd
-            .ReturnMsg = "Start CRM Exchange Rates Update..."
-            .RoutineName = "CRM_ExchangeRates"
+            .ReturnMsg = "Start Exchange Rates Update..."
+            .RoutineName = "ExchangeRates"
             .StartTime = dtmStartTime
             .Success = 1
         End With
         er.Update_ExchangeRatesLog(fd)
+        '-------------------------------------------------------------------------------------------
         'Run ExchangeRates Update
         '-------------------------------------------------------------------------------------------
         strResult = er.GetCurrencies()
         strResult = er.GetLatestCurrencyExchangeRates()
+        '-------------------------------------------------------------------------------------------
+        'Smple Json Data for Testing
         'strResult = er.TestJson()
-
+        '-------------------------------------------------------------------------------------------
         'Update ExchangeRates Log
         Console.WriteLine(er.GetElapsedTime(dtmStartTime))
         With fd
             .ElapsedTime = er.GetElapsedTime(dtmStartTime)
             .EndTime = Date.Now
-            .ReturnMsg = "CRM Exchange Rates Update Complete..." & vbCrLf & vbCrLf & strResult
-            .RoutineName = "CRM_ExchangeRates"
+            .ReturnMsg = "Exchange Rates Update Complete..." & vbCrLf & vbCrLf & strResult
+            .RoutineName = "ExchangeRates"
             .RoutineType = ""
             .StartTime = dtmStartTime
             .Success = 1
@@ -129,7 +132,7 @@ Module modApp
 
     Sub Main()
         Dim strStartDate As String = ""
-        RunCRM_ExchangeRates(strStartDate)
+        Run_ExchangeRates(strStartDate)
     End Sub
 
 End Module

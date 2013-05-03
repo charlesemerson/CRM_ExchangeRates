@@ -21,15 +21,6 @@ Public Class clsFunctionDetails
     Public Success As Boolean = False
 End Class
 
-Public Class OpportunityDetails
-    Public OID As Integer = 0
-    Public SubscriberID As Integer = 0
-    Public LastActivityDate As Date = Nothing
-    Public Revenue As Integer = 0
-    Public Updated As Date = Nothing
-    Public UpdatedBy As String = ""
-End Class
-
 Public Class CurrencyDetails
     Public CID As Integer = 0
     Public CurrencyCode As String = ""
@@ -319,18 +310,6 @@ wrap_up:
         Return intID
     End Function
 
-    Public Sub DeleteRecord(ByVal strSQL As String, ByVal strConn As String)
-        Dim conn As SqlConnection
-        conn = New SqlConnection(strConn)
-        cmdDelete = New SqlCommand(strSQL, conn)
-        conn.Open()
-        cmdDelete.ExecuteNonQuery()
-        conn.Close()
-        conn.Dispose()
-        cmdDelete.Dispose()
-        conn = Nothing
-    End Sub
-
     Public Function FillDataset(ByVal strSQL As String) As DataSet
         Dim conn As SqlConnection
         Dim ds As DataSet
@@ -360,12 +339,6 @@ wrap_up:
         Return blnExists
     End Function
 
-    Public Sub TruncateTable(ByVal strTable As String, ByVal strConn As String)
-        Dim strSQL As String
-        strSQL = "TRUNCATE TABLE " & strTable
-        UpdateRecord(strSQL, strConn)
-    End Sub
-
     Public Function UpdateRecord(ByVal strSQL As String, ByVal strConn As String) As Integer
         Dim intRecordsAffected As Integer = 0
         Try
@@ -390,34 +363,7 @@ wrap_up:
 
 #End Region
 
-    Public Function CurrencyCodeExists(ByVal strCurrencyCode As String) As Boolean
-        Dim blnExists As Boolean = False
-        strSQL = "SELECT ID FROM tblCurrencies "
-        strSQL += "WHERE (CurrencyCode = '" & strCurrencyCode & "') "
-        Dim ds As Data.DataSet = FillDataset(strSQL)
-        Dim dt As Data.DataTable = ds.Tables(0)
-        If dt.Rows.Count > 0 Then
-            blnExists = True
-        End If
-        dt.Dispose() : dt = Nothing
-        ds.Dispose() : ds = Nothing
-        Return blnExists
-    End Function
-
-    Public Function CurrencyExchangeRateExists(ByVal strCurrencyCode As String, dtmExchangeDate As Date) As Boolean
-        Dim blnExists As Boolean = False
-        strSQL = "SELECT ID FROM tblCurrencyExchangeRates "
-        strSQL += "WHERE (CurrencyCode = '" & strCurrencyCode & "') "
-        strSQL += "AND (ExchangeDate = '" & dtmExchangeDate & "') "
-        Dim ds As Data.DataSet = FillDataset(strSQL)
-        Dim dt As Data.DataTable = ds.Tables(0)
-        If dt.Rows.Count > 0 Then
-            blnExists = True
-        End If
-        dt.Dispose() : dt = Nothing
-        ds.Dispose() : ds = Nothing
-        Return blnExists
-    End Function
+#Region " Currencies "
 
     Public Function AddCurrency(ByVal strCurrencyCode As String, ByVal strCurrencyName As String) As String
         Dim strResult As String = ""
@@ -446,28 +392,18 @@ wrap_up:
         Return strResult
     End Function
 
-    Public Function AddCurrencyExchangeRate(ByVal strCurrencyCode As String, _
-                                            ByVal dtmExchangeDate As Date, _
-                                            ByVal dblExchangeRate As Double) As String
-        Dim strResult As String = ""
-        'Check if Currency Exchange Rate Exists
-        Dim blnExists As Boolean = CurrencyExchangeRateExists(strCurrencyCode, dtmExchangeDate)
-        Dim intRecordsAffected As Integer = 0
-        If blnExists = False Then
-            strSQL = "INSERT INTO tblCurrencyExchangeRates ("
-            strSQL += "CurrencyCode, "
-            strSQL += "ExchangeDate, "
-            strSQL += "ExchangeRate "
-            strSQL += ") VALUES ("
-            strSQL += "'" & strCurrencyCode & "', "
-            strSQL += "'" & dtmExchangeDate & "', "
-            strSQL += dblExchangeRate & ")"
-            intRecordsAffected = AddRecord(strSQL, strConn)
-            strResult = "Added Currency Exchange Rate: " & strCurrencyCode & " - " & dtmExchangeDate
-        Else
-            strResult = "Currency Exchange Rate Exists: " & strCurrencyCode & " - " & dtmExchangeDate
+    Public Function CurrencyCodeExists(ByVal strCurrencyCode As String) As Boolean
+        Dim blnExists As Boolean = False
+        strSQL = "SELECT ID FROM tblCurrencies "
+        strSQL += "WHERE (CurrencyCode = '" & strCurrencyCode & "') "
+        Dim ds As Data.DataSet = FillDataset(strSQL)
+        Dim dt As Data.DataTable = ds.Tables(0)
+        If dt.Rows.Count > 0 Then
+            blnExists = True
         End If
-        Return strResult
+        dt.Dispose() : dt = Nothing
+        ds.Dispose() : ds = Nothing
+        Return blnExists
     End Function
 
     Public Function GetCurrencies() As String
@@ -553,6 +489,49 @@ wrap_up:
             If Not response Is Nothing Then response.Close()
         End Try
         Return strResult
+    End Function
+
+#End Region
+
+#Region " Currency Exchange Rates "
+
+    Public Function AddCurrencyExchangeRate(ByVal strCurrencyCode As String, _
+                                            ByVal dtmExchangeDate As Date, _
+                                            ByVal dblExchangeRate As Double) As String
+        Dim strResult As String = ""
+        'Check if Currency Exchange Rate Exists
+        Dim blnExists As Boolean = CurrencyExchangeRateExists(strCurrencyCode, dtmExchangeDate)
+        Dim intRecordsAffected As Integer = 0
+        If blnExists = False Then
+            strSQL = "INSERT INTO tblCurrencyExchangeRates ("
+            strSQL += "CurrencyCode, "
+            strSQL += "ExchangeDate, "
+            strSQL += "ExchangeRate "
+            strSQL += ") VALUES ("
+            strSQL += "'" & strCurrencyCode & "', "
+            strSQL += "'" & dtmExchangeDate & "', "
+            strSQL += dblExchangeRate & ")"
+            intRecordsAffected = AddRecord(strSQL, strConn)
+            strResult = "Added Currency Exchange Rate: " & strCurrencyCode & " - " & dtmExchangeDate
+        Else
+            strResult = "Currency Exchange Rate Exists: " & strCurrencyCode & " - " & dtmExchangeDate
+        End If
+        Return strResult
+    End Function
+
+    Public Function CurrencyExchangeRateExists(ByVal strCurrencyCode As String, dtmExchangeDate As Date) As Boolean
+        Dim blnExists As Boolean = False
+        strSQL = "SELECT ID FROM tblCurrencyExchangeRates "
+        strSQL += "WHERE (CurrencyCode = '" & strCurrencyCode & "') "
+        strSQL += "AND (ExchangeDate = '" & dtmExchangeDate & "') "
+        Dim ds As Data.DataSet = FillDataset(strSQL)
+        Dim dt As Data.DataTable = ds.Tables(0)
+        If dt.Rows.Count > 0 Then
+            blnExists = True
+        End If
+        dt.Dispose() : dt = Nothing
+        ds.Dispose() : ds = Nothing
+        Return blnExists
     End Function
 
     Public Function GetLatestCurrencyExchangeRates() As String
@@ -675,23 +654,7 @@ wrap_up:
         AddRecord(strSQL, strConn)
     End Sub
 
-    Public Sub UpdateOpportunityRecord(ByVal od As OpportunityDetails)
-        Try
-            Dim strSQL As String = ""
-            strSQL = "UPDATE rptOpportunities "
-            strSQL += "SET "
-            strSQL += "Revenue = " & Nz(od.Revenue, 0) & ", "
-            strSQL += "Updated = " & FormatDBDate(od.Updated) & ", "
-            strSQL += "[Updated By] = '" & Cs(od.UpdatedBy) & "', "
-            strSQL += "WHERE (OID = " & od.OID & ") "
-            UpdateRecord(strSQL, strConn)
-        Catch ex As Exception
-            strReturnMsg = "Error-UpdateOpportunityReportRecord"
-            strErrorMsg = ex.Message
-            blnSuccess = False
-            Console.WriteLine(strReturnMsg & " | " & strErrorMsg)
-        End Try
-    End Sub
+#End Region
 
     Public Function TestJson() As String
         Dim strJsonData As String = ""
